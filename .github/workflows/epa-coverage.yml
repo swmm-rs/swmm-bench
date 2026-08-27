@@ -35,7 +35,7 @@ jobs:
           cmake --build build/epa-swmm --target runswmm
 
       - name: Run SWMM regressions
-        run: uv run swmm-test run --threads 1 build/epa-swmm/src/run/runswmm
+        run: uv run swmm-test run --inp-option THREADS=2 build/epa-swmm/src/run/runswmm
 
       - name: Generate coverage report
         id: coverage_report
