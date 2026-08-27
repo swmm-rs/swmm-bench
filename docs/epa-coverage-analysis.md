@@ -18,19 +18,19 @@ the final three are additional model/control files with large branch denominator
 
 | File | Covered / total branches | Unhit | Why it matters here |
 | --- | ---: | ---: | --- |
-| [street.c](http://karosc.github.io/swmm-bench/epa-swmm-coverage.street.c.4be413661a01fd6955ec49a470fe9ff4.html) | 28 / 60 (46.7%) | 32 | Street cross-section parsing and routing mode |
-| [roadway.c](http://karosc.github.io/swmm-bench/epa-swmm-coverage.roadway.c.34c60e2b5ab0de8af4ec66d4ba6cf764.html) | 20 / 38 (52.6%) | 18 | Roadway-weir hydraulic calculation |
-| [iface.c](http://karosc.github.io/swmm-bench/epa-swmm-coverage.iface.c.49fdcd3fa15ba8a6ec33317d973622bd.html) | 102 / 185 (55.1%) | 83 | Interface-file I/O and quality-data mode |
-| [exfil.c](http://karosc.github.io/swmm-bench/epa-swmm-coverage.exfil.c.e733ee3e3413c8952b5c1bf4fcf75c58.html) | 29 / 52 (55.8%) | 23 | Storage exfiltration shapes and bank loss |
-| [datetime.c](http://karosc.github.io/swmm-bench/epa-swmm-coverage.datetime.c.b4947e4004da882e847c98433b00dcde.html) | 61 / 108 (56.5%) | 47 | Date format and boundary handling |
-| [inlet.c](http://karosc.github.io/swmm-bench/epa-swmm-coverage.inlet.c.8a303809c0bfec5b0704e3b19dc393e8.html) | 260 / 459 (56.6%) | 199 | Inlet capture, specialized inlet types, routing modes |
-| [table.c](http://karosc.github.io/swmm-bench/epa-swmm-coverage.table.c.06b5bae912b5217569529a3d1fe1eeba.html) | 130 / 226 (57.5%) | 96 | Curves, time series, file-backed tables |
-| [rain.c](http://karosc.github.io/swmm-bench/epa-swmm-coverage.rain.c.93cac3b1447ddaf26c0d0567be3190cb.html) | 189 / 319 (59.2%) | 130 | External rainfall formats and errors |
-| [lidproc.c](http://karosc.github.io/swmm-bench/epa-swmm-coverage.lidproc.c.fa8e52dec9cc856cc60073640f8bbd41.html) | 217 / 366 (59.3%) | 149 | LID states, overflow, drains, and controls |
-| [hotstart.c](http://karosc.github.io/swmm-bench/epa-swmm-coverage.hotstart.c.7d6481369abe409f3b9d53a043d00fea.html) | 100 / 168 (59.5%) | 68 | Compatibility and file-error handling |
-| [controls.c](http://karosc.github.io/swmm-bench/epa-swmm-coverage.controls.c.7d2cc1cc59e6790be8af9f19ff91f990.html) | 315 / 523 (60.2%) | 208 | Rule-language and control semantics |
-| [gwater.c](http://karosc.github.io/swmm-bench/epa-swmm-coverage.gwater.c.9b6792d3f2ac7298d69e91338e3d232d.html) | 123 / 198 (62.1%) | 75 | Groundwater modes and physical limits |
-| [xsect.c](http://karosc.github.io/swmm-bench/epa-swmm-coverage.xsect.c.61c30db9c77960303643c05d808c68f1.html) | 320 / 511 (62.6%) | 191 | Core cross-section geometry and lookup logic |
+| [street.c](http://swmm-rs.github.io/swmm-bench/epa-swmm-coverage.street.c.4be413661a01fd6955ec49a470fe9ff4.html) | 28 / 60 (46.7%) | 32 | Street cross-section parsing and routing mode |
+| [roadway.c](http://swmm-rs.github.io/swmm-bench/epa-swmm-coverage.roadway.c.34c60e2b5ab0de8af4ec66d4ba6cf764.html) | 20 / 38 (52.6%) | 18 | Roadway-weir hydraulic calculation |
+| [iface.c](http://swmm-rs.github.io/swmm-bench/epa-swmm-coverage.iface.c.49fdcd3fa15ba8a6ec33317d973622bd.html) | 102 / 185 (55.1%) | 83 | Interface-file I/O and quality-data mode |
+| [exfil.c](http://swmm-rs.github.io/swmm-bench/epa-swmm-coverage.exfil.c.e733ee3e3413c8952b5c1bf4fcf75c58.html) | 29 / 52 (55.8%) | 23 | Storage exfiltration shapes and bank loss |
+| [datetime.c](http://swmm-rs.github.io/swmm-bench/epa-swmm-coverage.datetime.c.b4947e4004da882e847c98433b00dcde.html) | 61 / 108 (56.5%) | 47 | Date format and boundary handling |
+| [inlet.c](http://swmm-rs.github.io/swmm-bench/epa-swmm-coverage.inlet.c.8a303809c0bfec5b0704e3b19dc393e8.html) | 260 / 459 (56.6%) | 199 | Inlet capture, specialized inlet types, routing modes |
+| [table.c](http://swmm-rs.github.io/swmm-bench/epa-swmm-coverage.table.c.06b5bae912b5217569529a3d1fe1eeba.html) | 130 / 226 (57.5%) | 96 | Curves, time series, file-backed tables |
+| [rain.c](http://swmm-rs.github.io/swmm-bench/epa-swmm-coverage.rain.c.93cac3b1447ddaf26c0d0567be3190cb.html) | 189 / 319 (59.2%) | 130 | External rainfall formats and errors |
+| [lidproc.c](http://swmm-rs.github.io/swmm-bench/epa-swmm-coverage.lidproc.c.fa8e52dec9cc856cc60073640f8bbd41.html) | 217 / 366 (59.3%) | 149 | LID states, overflow, drains, and controls |
+| [hotstart.c](http://swmm-rs.github.io/swmm-bench/epa-swmm-coverage.hotstart.c.7d6481369abe409f3b9d53a043d00fea.html) | 100 / 168 (59.5%) | 68 | Compatibility and file-error handling |
+| [controls.c](http://swmm-rs.github.io/swmm-bench/epa-swmm-coverage.controls.c.7d2cc1cc59e6790be8af9f19ff91f990.html) | 315 / 523 (60.2%) | 208 | Rule-language and control semantics |
+| [gwater.c](http://swmm-rs.github.io/swmm-bench/epa-swmm-coverage.gwater.c.9b6792d3f2ac7298d69e91338e3d232d.html) | 123 / 198 (62.1%) | 75 | Groundwater modes and physical limits |
+| [xsect.c](http://swmm-rs.github.io/swmm-bench/epa-swmm-coverage.xsect.c.61c30db9c77960303643c05d808c68f1.html) | 320 / 511 (62.6%) | 191 | Core cross-section geometry and lookup logic |
 
 ## What the missed branches are
 

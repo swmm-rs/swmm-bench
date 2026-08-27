@@ -5,7 +5,7 @@ Benchmark and regression-test compatible [SWMM](https://www.epa.gov/water-resear
 `swmm-bench` measures runtime and peak memory on SWMM input models. `swmm-test` runs a curated numerical regression suite, including interface-file interoperability checks. With two or more engines, both commands compare report tables and binary `.out` time series and produce terminal, JSON, and optional HTML reports.
 
 > [!IMPORTANT]
-> **EPA SWMM test coverage:** [view the latest report](http://karosc.github.io/swmm-bench/epa-swmm-coverage.html).
+> **EPA SWMM test coverage:** [view the latest report](http://swmm-rs.github.io/swmm-bench/epa-swmm-coverage.html).
 >
 > The regression suite covers broad solver behavior, but the [largest gaps](docs/epa-coverage-analysis.md)
 > are specialized hydraulic regimes and numerical boundaries: cross-section geometry, inlet and roadway
