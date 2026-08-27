@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=78.1.1", "wheel>=0.46.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "swmm-bench"
+version = "0.1.0"
+description = "SWMM engine benchmarking and regression testing tool"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "typer[all]>=0.9",
+    "psutil>=5.9",
+    "jinja2>=3.1",
+    "swmm-pandas==0.14.2",
+]
+
+[project.scripts]
+swmm-bench = "swmm_bench.cli:app"
+swmm-test = "swmm_bench.cli:test_app"
+
+[[tool.uv.index]]
+url = "https://pypi.org/simple"
+default = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["swmm_bench*"]
+
+[tool.setuptools.package-data]
+swmm_bench = [
+    "templates/*.j2",
+    "resources/regression-suite/*.md",
+    "resources/regression-suite/*.txt",
+    "resources/regression-suite/**/*.inp",
+    "resources/regression-suite/**/*.dat",
+    "resources/interface-suite/**/*.inp",
+    "resources/regression-suite/**/*.bin",
+    "resources/benchmarks/**/*.inp",
+    "resources/benchmarks/**/*.dat",
+    "resources/benchmarks/**/*.bin",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.3.0",
+    "ipython>=9.16.1",
+]

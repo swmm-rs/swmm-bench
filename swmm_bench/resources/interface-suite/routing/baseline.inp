@@ -1,0 +1,79 @@
+[TITLE]
+Provenance: purpose-built for swmm-bench.
+Direct routing baseline for OUTFLOWS to INFLOWS interface tests
+
+[OPTIONS]
+VARIABLE_STEP        0.75
+INERTIAL_DAMPING     PARTIAL
+INFILTRATION         HORTON
+MIN_SURFAREA         0
+FLOW_ROUTING         DYNWAVE
+NORMAL_FLOW_LIMITED  BOTH
+REPORT_STEP          00:05:00
+LAT_FLOW_TOL         5
+ROUTING_STEP         00:00:05
+RULE_STEP            00:00:00
+LENGTHENING_STEP     0
+END_TIME             06:00:00
+ALLOW_PONDING        NO
+LINK_OFFSETS         DEPTH
+DRY_STEP             01:00:00
+FORCE_MAIN_EQUATION  H-W
+MIN_SLOPE            0
+THREADS              1
+REPORT_START_DATE    01/01/2020
+REPORT_START_TIME    00:00:00
+START_TIME           00:00:00
+SKIP_STEADY_STATE    NO
+END_DATE             01/01/2020
+WET_STEP             00:05:00
+SWEEP_END            12/31
+SYS_FLOW_TOL         5
+MINIMUM_STEP         0.5
+MAX_TRIALS           8
+FLOW_UNITS           CFS
+START_DATE           01/01/2020
+SWEEP_START          01/01
+DRY_DAYS             0
+HEAD_TOLERANCE       0.005
+
+[JUNCTIONS]
+;;Name             Elevation  MaxDepth   InitDepth  SurDepth   Aponded
+INTERFACE_NODE     95         10         0          0          0
+INFLOW_NODE        100        10         0          0          0
+
+[OUTFALLS]
+;;Name               Elevation  Type       Stage Data       Gated    Route To
+DOWNSTREAM_OUTFALL   90         FREE                        NO
+
+[CONDUITS]
+;;Name             From Node       To Node              Length  Roughness  InOffset  OutOffset  InitFlow  MaxFlow
+DOWNSTREAM_PIPE    INTERFACE_NODE  DOWNSTREAM_OUTFALL   500     0.013      0         0          0         0
+C1                 INFLOW_NODE     INTERFACE_NODE       500     0.013      0         0          0         0
+
+[XSECTIONS]
+;;Link             Shape       Geom1  Geom2  Geom3  Geom4  Barrels
+DOWNSTREAM_PIPE    CIRCULAR    3      0      0      0      1
+C1                 CIRCULAR    3      0      0      0      1
+
+[INFLOWS]
+;;Node             Constituent      Time Series      Type     Mfactor  Sfactor  Baseline  Pattern
+INFLOW_NODE        FLOW             HYDROGRAPH       FLOW     1.0      1.0      0.0
+
+[TIMESERIES]
+;;Name             Date        Time       Value
+HYDROGRAPH         01/01/2020  00:00      0.0
+HYDROGRAPH         01/01/2020  00:30      2.0
+HYDROGRAPH         01/01/2020  01:00      8.0
+HYDROGRAPH         01/01/2020  02:00      12.0
+HYDROGRAPH         01/01/2020  03:00      8.0
+HYDROGRAPH         01/01/2020  04:00      2.0
+HYDROGRAPH         01/01/2020  04:30      0.0
+HYDROGRAPH         01/01/2020  06:00      0.0
+
+[REPORT]
+INPUT              NO
+CONTROLS           NO
+SUBCATCHMENTS      NONE
+NODES              INTERFACE_NODE DOWNSTREAM_OUTFALL
+LINKS              DOWNSTREAM_PIPE

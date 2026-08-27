@@ -1,0 +1,82 @@
+name: EPA SWMM coverage
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  coverage:
+    outputs:
+      report_ready: ${{ steps.coverage_report.outcome == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Set up test dependencies
+        run: uv sync
+
+      - name: Clone EPA SWMM develop
+        run: git clone --depth 1 --branch develop https://github.com/USEPA/Stormwater-Management-Model.git epa-swmm
+
+      - name: Build EPA SWMM with coverage
+        run: |
+          cmake -S epa-swmm -B build/epa-swmm -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_C_FLAGS='--coverage -O0 -g' \
+            -DCMAKE_EXE_LINKER_FLAGS=--coverage
+          cmake --build build/epa-swmm --target runswmm
+
+      - name: Run SWMM regressions
+        run: uv run swmm-test run --threads 1 build/epa-swmm/src/run/runswmm
+
+      - name: Generate coverage report
+        id: coverage_report
+        if: always()
+        run: |
+          mkdir -p coverage/epa
+          uvx gcovr \
+            --root epa-swmm \
+            --object-directory build/epa-swmm \
+            --exclude-directories '.*/CMakeFiles/[^/]+/CompilerIdC$' \
+            --filter 'epa-swmm/src/solver' \
+            --exclude 'epa-swmm/src/solver/include/' \
+            --exclude 'epa-swmm/src/solver/(toolkit|swmm5|report|error|mempool|toposort)\.c$' \
+            --exclude 'epa-swmm/src/solver/error\.txt$' \
+            --html-details coverage/epa/epa-swmm-coverage.html
+
+      - name: Upload coverage to GitHub Pages
+        if: ${{ always() && steps.coverage_report.outcome == 'success' }}
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: coverage/epa
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: epa-swmm-coverage
+          path: coverage/epa
+          if-no-files-found: error
+
+  deploy-pages:
+    if: ${{ always() && needs.coverage.outputs.report_ready == 'true' }}
+    needs: coverage
+    permissions:
+      pages: write
+      id-token: write
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy coverage report
+        id: deployment
+        uses: actions/deploy-pages@v4

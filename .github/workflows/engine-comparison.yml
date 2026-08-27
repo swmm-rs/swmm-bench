@@ -1,0 +1,236 @@
+name: Engine Wars
+
+on:
+  workflow_dispatch:
+    inputs:
+      openswmm_ref:
+        description: OpenSWMM branch, tag, or commit
+        required: true
+        default: swmm6_rel
+        type: string
+      epa_ref:
+        description: EPA SWMM branch, tag, or commit
+        required: true
+        default: develop
+        type: string
+      uds_ref:
+        description: UDS branch, tag, or commit
+        required: true
+        default: main
+        type: string
+      swmmrs_ref:
+        description: swmmrs branch, tag, or commit
+        required: true
+        default: main
+        type: string
+      run_name:
+        description: Name for the saved comparison results
+        required: true
+        default: engine-wars
+        type: string
+      threads:
+        description: Number of threads to use for the comparison
+        required: false
+        default: 4
+        type: number
+      variable_step:
+        description: Variable step size for the comparison
+        required: false
+        default: 0
+        type: number
+
+permissions:
+  contents: read
+
+env:
+  VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+  VCPKG_REF: "2025.02.14"
+  # OMP_NUM_THREADS: 1
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Set up swmm-bench
+        run: uv sync
+
+      - name: Clone OpenSWMM Engine
+        uses: actions/checkout@v4
+        with:
+          repository: HydroCouple/openswmm.engine
+          ref: ${{ inputs.openswmm_ref }}
+          path: openswmm
+
+      - name: Clone EPA SWMM
+        uses: actions/checkout@v4
+        with:
+          repository: USEPA/Stormwater-Management-Model
+          ref: ${{ inputs.epa_ref }}
+          path: epa-swmm
+      
+      - name: Clone UDS
+        uses: actions/checkout@v4
+        with:
+          repository: neeraip/hydra
+          ref: ${{ inputs.uds_ref }}
+          path: uds
+      
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: swmm-rs
+
+      - name: Clone swmmrs
+        uses: actions/checkout@v4
+        with:
+          repository: swmm-rs/swmmrs
+          token: ${{ steps.app-token.outputs.token }}
+          submodules: recursive
+          persist-credentials: false
+          path: swmmrs
+          ref: ${{ inputs.swmmrs_ref }}
+
+      - name: Clone vcpkg
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/vcpkg
+          ref: ${{ env.VCPKG_REF }}
+          path: vcpkg
+
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+      
+      - name: Install pinned Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+        with:
+          toolchain: "1.97.1"
+
+      - name: Bootstrap vcpkg
+        working-directory: vcpkg
+        run: ./bootstrap-vcpkg.sh -disableMetrics
+
+      - name: Build OpenSWMM Engine
+        working-directory: openswmm
+        run: |
+          cmake --preset Linux -B ../build/openswmm \
+            -DVCPKG_MANIFEST_NO_DEFAULT_FEATURES=ON \
+            -DOPENSWMM_BUILD_2D=OFF \
+            -DOPENSWMM_BUILD_GPU_PLUGIN=OFF \
+            -DOPENSWMM_WITH_HYPRE=OFF \
+            -DOPENSWMM_WITH_GEOPACKAGE=OFF \
+            -DOPENSWMM_BUILD_TESTS=OFF \
+            -DOPENSWMM_BUILD_UNIT_TESTS=OFF \
+            -DOPENSWMM_BUILD_REGRESSION_TESTS=OFF \
+            -DOPENSWMM_BUILD_BENCHMARKS=OFF \
+            -DOPENSWMM_FAST_XSECT_LOOKUP=OFF \
+            -DOPENSWMM_FAST_MANNING_POW=OFF
+          cmake --build ../build/openswmm --parallel
+          
+      - name: Build EPA SWMM
+        run: |
+          cmake -S epa-swmm -B build/epa-swmm -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=OFF
+          cmake --build build/epa-swmm --target runswmm
+          mv build/epa-swmm/src/run/runswmm build/epa-swmm/src/run/epaswmm
+
+      - name: Build UDS
+        working-directory: uds
+        run: |
+          cargo build --release --locked -p hydra-cli
+          mkdir -p ../build/hydra
+          cp target/release/hydra ../build/hydra/hydra
+
+      - name: Create Hydra SWMM wrapper
+        run: |
+          cat > build/hydra/runhydra <<'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          if [[ $# -ne 3 ]]; then
+            echo "Usage: $(basename "$0") Model.inp Model.rpt Model.out" >&2
+            exit 64
+          fi
+
+          exec "$(dirname "$0")/hydra" run --engine uds --results "$3" --summary "$2" "$1"
+          EOF
+          chmod +x build/hydra/runhydra
+
+      - name: Build swmmrs
+        working-directory: swmmrs
+        run: |
+          cargo build --release --locked -p runswmmrs
+          mkdir -p ../build/swmmrs
+          cp target/release/runswmmrs ../build/swmmrs/runswmmrs
+
+      - name: Run regression suite
+        id: regression
+        continue-on-error: true
+        run: |
+          uv run swmm-test run \
+          --inp-option THREADS=${{ inputs.threads }} \
+          --inp-option VARIABLE_STEP=${{ inputs.variable_step }} \
+          --timeout 900 \
+          --output-parse-workers 2 \
+          --report-size-mb 200 \
+          --name "${{ inputs.run_name }}" \
+          build/epa-swmm/src/run/epaswmm \
+          build/openswmm/src/cli/openswmm \
+          build/openswmm/src/legacy/cli/openswmm-legacy \
+          build/swmmrs/runswmmrs \
+          build/hydra/runhydra
+
+      - name: Run benchmarks
+        run: |
+          uv run swmm-bench run \
+          --inp-option THREADS=${{ inputs.threads }} \
+          --inp-option VARIABLE_STEP=${{ inputs.variable_step }} \
+          --timeout 1800 \
+          --output-parse-workers 2 \
+          --report-size-mb 200 \
+          --name "${{ inputs.run_name }}" \
+          build/epa-swmm/src/run/epaswmm \
+          build/openswmm/src/cli/openswmm \
+          build/openswmm/src/legacy/cli/openswmm-legacy \
+          build/swmmrs/runswmmrs \
+          build/hydra/runhydra
+
+      - name: Upload regression report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.run_name }}-regression-report.html
+          path: swmm-test-results/${{ inputs.run_name }}/report.html
+          if-no-files-found: warn
+
+      - name: Upload benchmark report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.run_name }}-benchmark-report.html
+          path: swmm-bench-results/${{ inputs.run_name }}/report.html
+          if-no-files-found: warn
+
+      - name: Upload comparison bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.run_name }}-bundle
+          path: |
+            swmm-test-results/${{ inputs.run_name }}
+            swmm-bench-results/${{ inputs.run_name }}
+          if-no-files-found: warn
+
+      - name: Fail for regression errors
+        if: steps.regression.outcome == 'failure'
+        run: exit 1
